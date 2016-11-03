@@ -1,0 +1,2 @@
+void setupLightSwitch();
+void checkLightSwitch();
