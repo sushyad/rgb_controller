@@ -1,3 +1,5 @@
 .piolibdeps
 .pioenvs
 lib
+setenv.sh
+*.bin
