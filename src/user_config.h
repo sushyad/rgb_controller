@@ -7,17 +7,29 @@
  *
 \*********************************************************************************************/
 
-#define MODULE                 LAUNDRY_MONITOR       // Hardware module type (SONOFF or ELECTRO_DRAGON)
+#define MODULE                 RGB_CONTROLLER       // Hardware module type
 
-#define PROJECT                "dryer"     // PROJECT is used as the default topic delimiter and OTA file name
+#if MODULE == RGB_CONTROLLER
+#define IS_RGB_CONTROLLER
+#endif
+
+#define PROJECT                "rgb_controller"     // PROJECT is used as the default topic delimiter and OTA file name
                                             // As an IDE restriction it needs to be the same as the main .ino file
-#define IS_DRYER
-
 #define CFG_HOLDER             0x20160520   // Change this value to load default configurations
 
 // Wifi
+#ifndef STA_SSID
 #define STA_SSID               "indebuurt3"      // Wifi SSID
+#endif
+
+#ifndef STA_PASS
 #define STA_PASS               "VnsqrtnrsddbrN"  // Wifi password
+#endif
+
+//#ifndef OTA_PASS_MD5_HASH
+//#define OTA_PASS_MD5_HASH "ota password hash"
+//#endif
+
 #define WIFI_HOSTNAME          "%s-%04d"         // Expands to <MQTT_TOPIC>-<last 4 decimal chars of MAC address>
 #define WIFI_CONFIG_TOOL       WIFI_SMARTCONFIG    // Default tool if wifi fails to connect (WIFI_SMARTCONFIG, WIFI_MANAGER or WIFI_WPSCONFIG)
 
@@ -28,20 +40,24 @@
 #define SERIAL_LOG_LEVEL       LOG_LEVEL_INFO
 #define WEB_LOG_LEVEL          LOG_LEVEL_INFO
 
-// Ota
-#if (ARDUINO >= 168)
-  #define OTA_URL              "http://192.168.0.42:80/api/arduino/" PROJECT ".ino.bin"
-#else
-  #define OTA_URL              "http://192.168.0.42:80/api/arduino/" PROJECT ".cpp.bin"
+// MQTT
+#ifndef MQTT_HOST
+#define MQTT_HOST              "domus1"
 #endif
 
-// MQTT
-#define MQTT_HOST              "domus1"
+#ifndef MQTT_PORT
 #define MQTT_PORT              1883
+#endif
 
 #define MQTT_CLIENT_ID         "DVES_%06X"  // Also fall back topic using Chip Id = last 6 characters of MAC address
+
+#ifndef MQTT_USER
 #define MQTT_USER              "DVES_USER"
+#endif
+
+#ifndef MQTT_PASS
 #define MQTT_PASS              "DVES_PASS"
+#endif
 
 #define SUB_PREFIX             "cmnd"       // Sonoff devices subscribe to:- cmnd/MQTT_TOPIC and cmnd/MQTT_GRPTOPIC
 #define PUB_PREFIX             "stat"       // Sonoff devices publish to:- stat/MQTT_TOPIC
@@ -97,11 +113,16 @@
   #define DHT_TYPE             DHT22        // DHT module type (DHT11, DHT21, DHT22, AM2301, AM2302 or AM2321)
   #define DSB_PIN              4            // GPIO 04 = DS18B20
 
-  #elif MODULE == LAUNDRY_MONITOR              // programming header 5V/3V/gnd/
+#elif MODULE == LAUNDRY_MONITOR              // programming header 5V/3V/gnd/
     #define APP_NAME             "Laundry Monitor"
     #define LED_PIN              2           // GPIO 16 = Led (0 = Off, 1 = On)
     #define LED_INVERTED         0            // 0 = (1 = On, 0 = Off), 1 = (0 = On, 1 = Off)
 
+#elif MODULE == RGB_CONTROLLER              // programming header 5V/3V/gnd/
+    #define APP_NAME             "RGB Light Controller"
+    #define LED_PIN              2           // GPIO 16 = Led (0 = Off, 1 = On)
+    #define LED_INVERTED         0            // 0 = (1 = On, 0 = Off), 1 = (0 = On, 1 = Off)
+
 #else
-  #error "Select either module SONOFF or ELECTRO_DRAGON"
+  #error "Select either module SONOFF, ELECTRO_DRAGON, LAUNDRY_MONITOR or RGB_CONTROLLER"
 #endif

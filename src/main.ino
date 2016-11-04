@@ -68,7 +68,7 @@ extern "C" {
 #define APP_POWER              0            // Default saved power state Off
 
 #define DEF_WIFI_HOSTNAME      "%s-%04d"    // Expands to <MQTT_TOPIC>-<last 4 decimal chars of MAC address>
-#define DEF_MQTT_CLIENT_ID     "DVES_%06X"  // Also fall back topic using Chip Id = last 6 characters of MAC address
+#define DEF_MQTT_CLIENT_ID     "ESP_%06X"  // Also fall back topic using Chip Id = last 6 characters of MAC address
 
 #define STATES                 10           // loops per second
 #define MQTT_RETRY_SECS        10           // Seconds to retry MQTT connection
@@ -84,6 +84,7 @@ enum butt_t {PRESSED, NOT_PRESSED};
 #include <ESP8266WiFi.h>        // MQTT, Ota, WifiManager
 #include <ESP8266HTTPClient.h>  // MQTT, Ota
 #include <ESP8266httpUpdate.h>  // Ota
+#include <ArduinoOTA.h>
 #ifdef USE_WEBSERVER
   #include <ESP8266WebServer.h> // WifiManager, Webserver
   #include <DNSServer.h>        // WifiManager
@@ -95,7 +96,9 @@ enum butt_t {PRESSED, NOT_PRESSED};
   #include <FS.h>               // Config
 #endif
 
-#include "rgb.h"
+#ifdef IS_RGB_CONTROLLER
+  #include "rgb.h"
+#endif
 
 extern "C" uint32_t _SPIFFS_start;
 extern "C" uint32_t _SPIFFS_end;
@@ -203,7 +206,7 @@ void CFG_Default()
   strlcpy(sysCfg.sta_pwd, STA_PASS, sizeof(sysCfg.sta_pwd));
   sysCfg.sta_config = WIFI_CONFIG_TOOL;
   strlcpy(sysCfg.hostname, WIFI_HOSTNAME, sizeof(sysCfg.hostname));
-  strlcpy(sysCfg.otaUrl, OTA_URL, sizeof(sysCfg.otaUrl));
+  strlcpy(sysCfg.otaUrl, OTA_HOST, sizeof(sysCfg.otaUrl));
   strlcpy(sysCfg.mqtt_host, MQTT_HOST, sizeof(sysCfg.mqtt_host));
   sysCfg.mqtt_port = MQTT_PORT;
   strlcpy(sysCfg.mqtt_client, MQTT_CLIENT_ID, sizeof(sysCfg.mqtt_client));
@@ -397,7 +400,7 @@ void mqttDataCb(char* topic, byte* data, unsigned int data_len)
     }
     else if (!strcmp(type,"OTAURL")) {
       if ((data_len > 0) && (data_len < sizeof(sysCfg.otaUrl)))
-        strlcpy(sysCfg.otaUrl, (payload == 1) ? OTA_URL : dataBuf, sizeof(sysCfg.otaUrl));
+        strlcpy(sysCfg.otaUrl, (payload == 1) ? OTA_HOST : dataBuf, sizeof(sysCfg.otaUrl));
       snprintf_P(svalue, sizeof(svalue), PSTR("%s"), sysCfg.otaUrl);
     }
     else if (!strcmp(type,"SERIALLOG")) {
@@ -891,6 +894,8 @@ void loop()
   if (Serial.available()) serial();
 #endif  // USE_SERIAL
 
+  ArduinoOTA.handle();
+
   yield();
 }
 
@@ -952,6 +957,7 @@ void setupCore() {
 
   setupWifi();
   setupMQTT();
+  setupOTAUpdate();
 
 #ifdef LED_PIN
   pinMode(LED_PIN, OUTPUT);
@@ -992,4 +998,30 @@ void setupMQTT() {
   }
   mqttClient.setServer(sysCfg.mqtt_host, sysCfg.mqtt_port);
   mqttClient.setCallback(mqttDataCb);
+}
+
+void setupOTAUpdate() {
+  // Enable OTA updates.
+  ArduinoOTA.setPasswordHash(OTA_PASS_MD5_HASH);
+  ArduinoOTA.setHostname(WIFI_HOSTNAME);
+
+  ArduinoOTA.onStart([]() {
+    Serial.println(F("INFO: Start OTA"));
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println(F("INFO: End OTA"));
+    ESP.reset();
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("INFO: Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println(F("ERROR: OTA auth Failed"));
+    else if (error == OTA_BEGIN_ERROR) Serial.println(F("ERROR: OTA begin Failed"));
+    else if (error == OTA_CONNECT_ERROR) Serial.println(F("ERROR: OTA connect Failed"));
+    else if (error == OTA_RECEIVE_ERROR) Serial.println(F("ERROR: OTA receive Failed"));
+    else if (error == OTA_END_ERROR) Serial.println(F("ERROR: OTA end Failed"));
+  });
+  ArduinoOTA.begin();
 }
