@@ -7,13 +7,13 @@
  *
 \*********************************************************************************************/
 
-#define MODULE                 RGB_CONTROLLER       // Hardware module type
+//#define MODULE                 RGB_CONTROLLER       // Hardware module type
 
 #if MODULE == RGB_CONTROLLER
 #define IS_RGB_CONTROLLER
 #endif
 
-#define PROJECT                "rgb_controller"     // PROJECT is used as the default topic delimiter and OTA file name
+//#define PROJECT                "rgb_controller"     // PROJECT is used as the default topic delimiter and OTA file name
                                             // As an IDE restriction it needs to be the same as the main .ino file
 #define CFG_HOLDER             0x20160520   // Change this value to load default configurations
 

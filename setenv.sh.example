@@ -1,7 +1,8 @@
+export MODULE=SONOFF, ELECTRO_DRAGON, LAUNDRY_MONITOR or RGB_CONTROLLER
 export WIFI_SSID=wifi ssid
 export WIFI_PASS=wifi password
 export OTA_PASS=ota password
 export MQTT_HOST=mqtt host
 export OTA_HOST=ota host
-export PROJECT_NAME=project name
+export PROJECT=project name with no whitespaces, used in mqtt queue name
 export VERSION="1"
