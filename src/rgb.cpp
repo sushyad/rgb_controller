@@ -4,7 +4,7 @@
 // MQTT: topics
 // state
 const PROGMEM char* MQTT_LIGHT_STATE_TOPIC = "rgblight/rgb1/status";
-const PROGMEM char* MQTT_LIGHT_COMMAND_TOPIC = "office/rgb1/command";
+const PROGMEM char* MQTT_LIGHT_COMMAND_TOPIC = "rgblight/rgb1/command";
 
 // brightness
 const PROGMEM char* MQTT_LIGHT_BRIGHTNESS_STATE_TOPIC = "rgblight/rgb1/brightness/status";
@@ -38,7 +38,7 @@ char m_msg_buffer[MSG_BUFFER_SIZE];
 
 // function called to adapt the brightness and the color of the led
 void setColor(uint8_t p_red, uint8_t p_green, uint8_t p_blue) {
-  uint8_t brightness = map(m_rgb_brightness, 0, 1023, 0, MAX_PWM_VALUE);
+  uint16_t brightness = m_rgb_brightness;
 
   analogWrite(RGB_LIGHT_RED_PIN, map(p_red, 0, 255, 0, brightness));
   analogWrite(RGB_LIGHT_GREEN_PIN, map(p_green, 0, 255, 0, brightness));
@@ -117,8 +117,8 @@ boolean deviceCallback(char* p_topic, byte* p_payload, unsigned int p_length) {
       }
     }
   } else if (String(MQTT_LIGHT_BRIGHTNESS_COMMAND_TOPIC).equals(p_topic)) {
-    uint8_t brightness = payload.toInt();
-    if (brightness < 0 || brightness > 100) {
+    uint16_t brightness = payload.toInt();
+    if (brightness < 0 || brightness > MAX_PWM_VALUE) {
       // do nothing...
       return true;
     } else {

@@ -25,7 +25,7 @@
  *                        | | | | | |                     Gnd
 */
 
-#define VERSION                0x01002100   // 1.0.33
+//#define VERSION                0x01002100   // 1.0.33
 
 #define SONOFF                 1            // Sonoff, Sonoff TH10/16
 #define ELECTRO_DRAGON         2            // Electro Dragon Wifi IoT Relay Board Based on ESP8266
@@ -1002,7 +1002,7 @@ void setupMQTT() {
 
 void setupOTAUpdate() {
   // Enable OTA updates.
-  ArduinoOTA.setPasswordHash(OTA_PASS_MD5_HASH);
+  ArduinoOTA.setPassword(OTA_PASS);
   ArduinoOTA.setHostname(WIFI_HOSTNAME);
 
   ArduinoOTA.onStart([]() {
